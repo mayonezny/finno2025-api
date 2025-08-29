@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QdrantClient } from '@qdrant/js-client-rest';
+import axios from 'axios';
 
 @Injectable()
 export class VectorStoreService {
@@ -11,10 +12,24 @@ export class VectorStoreService {
   private distance;
 
   constructor(private readonly config: ConfigService) {
+    this.url = this.config.get('QDRANT_URL');
     this.client = new QdrantClient({ url: this.url });
     this.collection = this.config.get('QDRANT_COLLECTION') || 'pirozhki';
-    this.url = this.config.get('QDRANT_URL') || 'http://localhost:6333';
     this.distance = this.config.get('QDRANT_DISTANCE') || 'Cosine';
+    this.waitForQdrantReady();
+  }
+
+  private async waitForQdrantReady(timeoutMs = 60000) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      try {
+        await axios.get(`${this.url}/collections`, { timeout: 2000 });
+        return;
+      } catch {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+    throw new Error('Qdrant is not ready after timeout');
   }
 
   async recreateCollection(size: number, collection = this.collection) {
