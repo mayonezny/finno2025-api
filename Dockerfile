@@ -25,7 +25,8 @@ COPY --from=builder /app/dist ./dist
 
 # Если есть swagger/static — раскомментируй
 # COPY public ./public
-
+COPY init-ca-and-start.sh /app/init-ca-and-start.sh
+RUN chmod +x /app/init-ca-and-start.sh
 # Порт Nest
 EXPOSE 8080
 

@@ -32,8 +32,12 @@ services:
     restart: unless-stopped
     ports:
       - '8080:8080'
+    volumes:
+      # монтируем твою папку с CA внутрь контейнера (read-only)
+      - /usr/share/pki/ca-trust-source/anchors/:/anchors:ro
+      # сделаем место для бандла, который соберём на старте
+      - rag_ca_bundle:/certs
     environment:
-      NODE_TLS_REJECT_UNAUTHORIZED: '0'
       # --- GigaChat (замени на свои значения) ---
       GIGACHAT_URL: '${GIGACHAT_URL}'
       GIGACHAT_AUTH_URL: '${GIGACHAT_AUTH_URL}'
@@ -59,6 +63,8 @@ services:
       # Если используешь «срез контекста»/кодировки и т.п.
       NODE_ENV: 'production'
 
+      NODE_EXTRA_CA_CERTS: /certs/extra-ca-bundle.pem
+    entrypoint: ['/bin/sh', '-lc', '/app/init-ca-and-start.sh']
     #depends_on:
     #qdrant:
     #condition: service_healthy
@@ -66,3 +72,4 @@ services:
 volumes:
   qdrant_storage:
     external: true
+  rag_ca_bundle:
