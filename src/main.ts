@@ -7,6 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
+  app.setGlobalPrefix('api');
   await app.listen(process.env.PORT ?? 8080);
   console.log(`RAG API listening on http://localhost:8080`);
 }
