@@ -1,9 +1,18 @@
 import { NestFactory } from '@nestjs/core';
+import { json, urlencoded } from 'express';
 
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  const app = await NestFactory.create(AppModule, { cors: true });
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
+  app.setGlobalPrefix('api');
+  app.enableCors({
+    origin: '*', // т.к. без credentials — можно "*" //ПОМЕНЯТЬ НА ПРОДЕ
+    credentials: false,
+  });
+  await app.listen(process.env.PORT ?? 8080);
+  console.log(`RAG API listening on http://localhost:8080`);
 }
 bootstrap();
